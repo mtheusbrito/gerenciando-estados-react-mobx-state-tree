@@ -6,7 +6,7 @@ import { useStore } from 'src/contexts/store.context';
 import {LinkNoStyle} from 'src/styles/theme';
 
 export const UserSnippet =observer(() => {
-	const { name, image, fetchUser } = useStore();
+	const { user:{ name, image, fetchUser}, } = useStore();
   useEffect(()=>{
     fetchUser();
 
