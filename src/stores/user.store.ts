@@ -10,6 +10,7 @@ export const UserStore = types.model("UserStore", {
   siren: types.maybe(types.number),
   fullAddress: types.maybe(types.string),
   accounts: types.maybe(types.frozen<MasterAccounts[]>()),
+  transactions: types.maybe(types.frozen<MasterAccounts[]>()),
  
 })
 .actions((self)=> ({
@@ -18,6 +19,7 @@ export const UserStore = types.model("UserStore", {
   setUserSiren: (siren: number)=>(self.siren = siren),
   setUserFullAddress: (fullAddress: string)=>(self.fullAddress = fullAddress),
   setUserAccounts: (accounts: MasterAccounts[])=>(self.accounts = accounts),
+  setUserTransactions: (transactions: MasterAccounts[])=>(self.transactions = transactions),
   fetchRandomUser: flow(function*(){
     return yield axios.get(
       `${process.env.REACT_APP_RANDOM_USERS_API}/?inc=name,picture`
@@ -51,11 +53,19 @@ export const UserStore = types.model("UserStore", {
 
     self.setUserFullAddress(fullAddress);
 
-    const accounts:MasterAccounts[] =  yield getAccounts();
+    const accounts:MasterAccounts[] =  yield getAccounts().savings();
     self.setUserAccounts(accounts);
+
+    const transactions: MasterAccounts[]= yield getAccounts().transactions();
+    self.setUserTransactions(transactions);
    
     return ramdonUser;
   })
+})).views((self)=>({
+  countTransactions: (): number | undefined => {
+
+    return self.transactions?.length;
+  }
 }));
 export const userStore = UserStore.create({});
 export type UserStoreType = Instance<typeof UserStore>;

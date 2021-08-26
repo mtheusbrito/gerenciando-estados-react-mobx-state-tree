@@ -32,15 +32,26 @@ export const manipulateTransactions = (
       transactions: transactions,
     };
   });
+export interface GetAccounts {
+  savings: () => Promise<Accounts[]>;
+  transactions: () => Promise<Accounts[]>;
 
-export const getAccounts = async (): Promise<Accounts[]> =>
-  fetchAccounts().then((rawData: MasterAccounts[]) => {
-    /**
-     * NOTE: If has other types of accounts like credit or loans, I'm preventing it here.
-     */
-    const onlyAccount: MasterAccounts[] = rawData.filter(
-      (acc: MasterAccounts) => acc.account_type !== AccountTypes.TRANSACTION
-    );
+}
 
-    return manipulateTransactions(onlyAccount, rawData);
-  });
+export const getAccounts = ( ): GetAccounts =>{
+  const savings = ():Promise<Accounts[]> =>
+    fetchAccounts().then((rawData: MasterAccounts[]) =>{
+      const onlyAccount: MasterAccounts[] = rawData.filter((acc:MasterAccounts) => acc.account_type !== AccountTypes.TRANSACTION);
+
+      return manipulateTransactions(onlyAccount, rawData);
+    });
+
+
+    const transactions = ():Promise<Accounts[]> =>
+    fetchAccounts().then((rawData: MasterAccounts[]) =>{
+      const onlyAccount: MasterAccounts[] = rawData.filter((acc:MasterAccounts) => acc.account_type === AccountTypes.TRANSACTION);
+
+      return manipulateTransactions(onlyAccount, rawData);
+    });
+  return {savings, transactions};
+};
