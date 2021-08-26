@@ -1,10 +1,16 @@
-import {createContext, ReactNode} from 'react';
+import {createContext, ReactNode, useContext} from 'react';
+
+import {  userStore, UserStoreType } from 'src/stores/user.store';
 
 
-export const StoreContext = createContext<string>('something');
+export const StoreContext = createContext<UserStoreType | undefined>(undefined);
 interface  StoreProviderProps {
   children: ReactNode
 }
 
 export const StoreProvider = ({children }: StoreProviderProps): JSX.Element =>
-	<StoreContext.Provider value={'something'}>{children}</StoreContext.Provider>;
+	<StoreContext.Provider value={userStore}>{children}</StoreContext.Provider>;
+
+export const useStore = () => useContext(StoreContext) as UserStoreType;
+
+

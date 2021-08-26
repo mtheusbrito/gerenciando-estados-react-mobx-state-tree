@@ -1,16 +1,15 @@
 import axios from "axios";
-import { flow, types } from "mobx-state-tree";
+import { flow, Instance, types } from "mobx-state-tree";
 
-import { sirenNumber } from "src/api/users/siren.api";
-import { Accounts } from "src/api/users/users.model";
-import { RandomUserResults } from "src/api/users/users.response";
+import { getAccounts } from "src/api/users/accounts";
+import { GetRandomUser, MasterAccounts } from "src/api/users/users.response";
 
 export const UserStore = types.model("UserStore", {
   name: types.maybe(types.string),
   image: types.maybe(types.string),
   siren: types.maybe(types.number),
   fullAddress: types.maybe(types.string),
-  accounts: types.maybe(types.frozen<Accounts[]>()),
+  accounts: types.maybe(types.frozen<MasterAccounts[]>()),
  
 })
 .actions((self)=> ({
@@ -18,7 +17,7 @@ export const UserStore = types.model("UserStore", {
   setUserImage: (image: string)=>(self.image = image),
   setUserSiren: (siren: number)=>(self.siren = siren),
   setUserFullAddress: (fullAddress: string)=>(self.fullAddress = fullAddress),
-  setUserAccounts: (accounts: Accounts[])=>(self.accounts = accounts),
+  setUserAccounts: (accounts: MasterAccounts[])=>(self.accounts = accounts),
   fetchRandomUser: flow(function*(){
     return yield axios.get(
       `${process.env.REACT_APP_RANDOM_USERS_API}/?inc=name,picture`
@@ -39,8 +38,8 @@ export const UserStore = types.model("UserStore", {
 
 .actions((self)=>({
   fetchUser: flow(function* () {
-    const data: RandomUserResults = yield self.fetchRandomUser();
-    const user = data.results[0];
+    const ramdonUser: GetRandomUser = yield self.fetchRandomUser();
+    const user = ramdonUser.data.results[0];
     const userName = `${user.name.title} ${user.name.first} ${user.name.last}`;
     self.setUserName(userName);
     
@@ -48,11 +47,15 @@ export const UserStore = types.model("UserStore", {
     self.setUserImage(userImage);
 
     const sirenData = yield self.fetchSiren();
-    const fullAddress: string = sirenData.unite_legale.etablissement_siege.geo_adresse;
+    const fullAddress: string = sirenData.data.unite_legale.etablissement_siege.geo_adresse;
 
     self.setUserFullAddress(fullAddress);
-   
 
+    const accounts:MasterAccounts[] =  yield getAccounts();
+    self.setUserAccounts(accounts);
+   
+    return ramdonUser;
   })
 }));
 export const userStore = UserStore.create({});
+export type UserStoreType = Instance<typeof UserStore>;
